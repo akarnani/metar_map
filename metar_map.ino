@@ -44,11 +44,11 @@ Adafruit_VEML7700 veml = Adafruit_VEML7700();
 #define SKIP_HEADER_LINES 6
 
 
-const String url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars"
+String url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars"
                    "&requestType=retrieve&format=csv"
                    "&hoursBeforeNow=3&mostRecentForEachStation=true"
-                   "&minLat=36&maxLat=43&minLon=-125&maxLon=-118"
-                   "&fields=station_id,flight_category,cloud_base_ft_agl";
+                   "&fields=station_id,flight_category,cloud_base_ft_agl"
+                   "&stationString=";
 
 struct entry {
   char name[ENTRY_SIZE];
@@ -70,7 +70,7 @@ RgbColor magenta(colorSaturation, 0, colorSaturation);
 RgbColor white(colorSaturation);
 RgbColor black(0);
 
-char airports[NUM_AIRPORTS][ENTRY_SIZE] = {
+String airports[NUM_AIRPORTS] = {
   "KMRY",
   "KPAO",
   "KHAF"
@@ -125,7 +125,14 @@ void setup() {
   //indicate boot and demonstrate all LEDs work
   strip.ClearTo(RgbColor(255, 165, 0));
   strip.Show();
-  delay(1000);
+
+  for (int i = 0; i < NUM_AIRPORTS; i++) {
+    if (i != 0) {
+      url += ",";
+    }
+
+    url += airports[i];
+  }
 }
 
 #if USE_LIGHT_SENSOR
@@ -284,7 +291,7 @@ entry processLine(char input[]) {
 void updateLEDForEntry(entry e) {
 
   for (int i = 0; i < NUM_AIRPORTS; i++) {
-    if (strcmp(e.name, airports[i]) == 0) {
+    if (strcmp(e.name, airports[i].c_str()) == 0) {
       Serial.printf("found %s: %s\n", e.name, e.condition);
       if (strcmp(e.condition, "VFR") == 0) {
         strip.SetPixelColor(i, green);
