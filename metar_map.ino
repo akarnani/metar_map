@@ -25,7 +25,7 @@
 /* The sketch will automatically scale the light between MIN_BRIGHTNESS and
   MAX_BRIGHTNESS on the ambient light values between MIN_LIGHT and MAX_LIGHT
   Set MIN_BRIGHTNESS and MAX_BRIGHTNESS to the same value to achieve a simple on/off effect. */
-#define MIN_BRIGHTNESS 20 // Recommend values above 4 as colors don't show well below that
+#define MIN_BRIGHTNESS 10 // Recommend values above 4 as colors don't show well below that
 #define MAX_BRIGHTNESS 50 // Recommend values between 20 and 30
 
 // Light values are a raw reading for analog and lux for digital
@@ -133,7 +133,10 @@ void setup() {
 
     url += airports[i];
   }
+
+  Serial.println(url);
 }
+
 
 #if USE_LIGHT_SENSOR
 void adjustBrightness() {
@@ -172,7 +175,7 @@ void loop() {
 
 
   // if we've waited long enough or its the first run
-  if (loops >= threshold || loops == 0 || (oldb == 0 && strip.GetBrightness() != 0)) {
+  if (strip.GetBrightness() != 0 && (loops >= threshold || loops == 0 || oldb == 0)) {
     loops = 0;
     Serial.println("updating metars");
     // wait for WiFi connection
