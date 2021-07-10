@@ -16,7 +16,7 @@
 #define REQUEST_INTERVAL 300000 // How often we update. In practice LOOP_INTERVAL is added. In ms (15 min is 900000)
 
 
-#define BRIGHTNESS 254 // 20-30 recommended. If using a light sensor, this is the initial brightness on boot.
+#define BRIGHTNESS 40 // 20-30 recommended. If using a light sensor, this is the initial brightness on boot.
 
 #define USE_LIGHT_SENSOR true // Set USE_LIGHT_SENSOR to true if you're using any light sensor.
 
@@ -58,7 +58,7 @@ struct entry {
 ESP8266WiFiMulti WiFiMulti;
 
 
-#define NUM_AIRPORTS 3 // This is really the number of LEDs
+#define NUM_AIRPORTS 72 // This is really the number of LEDs
 // Define the array of leds
 NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Uart1800KbpsMethod> strip(NUM_AIRPORTS);
 
@@ -72,8 +72,77 @@ RgbColor black(0);
 
 String airports[NUM_AIRPORTS] = {
   "KMRY",
+  "KSWS",
+  "KCUH",
+  "KWVI",
+  "KE16",
+  "KRHV",
+  "KSJC",
+  "KNUQ",
   "KPAO",
-  "KHAF"
+  "KSQL",
+  "KHAF",
+  "KSFO",
+  "KOAK",
+  "KHWD",
+  "KCCR",
+  "KSUU",
+  "KVCB",
+  "KAPC",
+  "KDVO",
+  "KO69",
+  "KSTS",
+  "KUKI",
+  "KFOT",
+  "KACV",
+  "KCEC",
+  "KBOK",
+  "KHS1",
+  "K3S8",
+  "KMFR",
+  "KSIY",
+  "KLMT",
+  "KLKV",
+  "KAAT",
+  "KRDD",
+  "KRBL",
+  "KCIC",
+  "KO05",
+  "KSVE",
+  "KLOL",
+  "KNFL",
+  "KRTS",
+  "KRWO",
+  "KCXP",
+  "KMEV",
+  "KTVL",
+  "KTRK",
+  "KBLU",
+  "KGOO",
+  "KBAB",
+  "KMYV",
+  "KSMF",
+  "KSAC",
+  "KMHR",
+  "KMCC",
+  "KLHM",
+  "KAUN",
+  "KPVF",
+  "KJAQ",
+  "KCPU",
+  "KO22",
+  "KSCK",
+  "KC83",
+  "KLVK",
+  "KTCY",
+  "KMOD",
+  "KMCE",
+  "KMAE",
+  "KFAT",
+  "KWLC",
+  "KHJO",
+  "KVIS",
+  "KMMH"
 };
 
 
