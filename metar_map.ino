@@ -12,8 +12,13 @@
 
 #include <WiFiClientSecureBearSSL.h>
 
+#include "RemoteDebug.h"        //https://github.com/JoaoLopesF/RemoteDebug
+
+RemoteDebug Debug;
+
+
 #define LOOP_INTERVAL 1500 // ms - interval between brightness updates and lightning strikes
-#define REQUEST_INTERVAL 300000 // How often we update. In practice LOOP_INTERVAL is added. In ms (15 min is 900000)
+#define REQUEST_INTERVAL 300000 // How often we update. In practice LOOP_INTERVAL is added. In ms (5 min is 300000)
 
 
 #define BRIGHTNESS 40 // 20-30 recommended. If using a light sensor, this is the initial brightness on boot.
@@ -45,10 +50,10 @@ Adafruit_VEML7700 veml = Adafruit_VEML7700();
 
 
 String url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars"
-                   "&requestType=retrieve&format=csv"
-                   "&hoursBeforeNow=3&mostRecentForEachStation=true"
-                   "&fields=station_id,flight_category,cloud_base_ft_agl"
-                   "&stationString=";
+             "&requestType=retrieve&format=csv"
+             "&hoursBeforeNow=3&mostRecentForEachStation=true"
+             "&fields=station_id,flight_category,cloud_base_ft_agl"
+             "&stationString=";
 
 struct entry {
   char name[ENTRY_SIZE];
@@ -169,7 +174,9 @@ void setup() {
   }
 
   WiFi.mode(WIFI_STA);
+  WiFi.hostname("metar_map.local");
   WiFiMulti.addAP(SECRET_SSID, SECRET_PASSWORD);
+  WiFiMulti.run();
 
   strip.Begin();
   strip.Show();
@@ -203,7 +210,11 @@ void setup() {
     url += airports[i];
   }
 
-  Serial.println(url);
+  Debug.begin("remotedebug"); // Initialize the WiFi server
+  Debug.setResetCmdEnabled(true); // Enable the reset command
+  Debug.showColors(true); // Colors
+
+  debugV("%s", url);
 }
 
 
@@ -213,8 +224,6 @@ void adjustBrightness() {
   float reading = veml.readLuxNormalized();
 
 
-  Serial.printf("Light reading: %f", reading);
-
   if (reading <= MIN_LIGHT) brightness = 0;
   else if (reading >= MAX_LIGHT) brightness = MAX_BRIGHTNESS;
   else {
@@ -223,14 +232,14 @@ void adjustBrightness() {
     brightness = brightness_percent * (MAX_BRIGHTNESS - MIN_BRIGHTNESS) + MIN_BRIGHTNESS;
   }
 
-  Serial.printf(", %d brightness\n", brightness);
+  debugD("Light reading: %f, %d brightness\n", reading, brightness);
   strip.SetBrightness(brightness);
 }
 #endif
 
 void loop() {
- uint8_t oldb = strip.GetBrightness();
-  
+  uint8_t oldb = strip.GetBrightness();
+
 #if USE_LIGHT_SENSOR
   adjustBrightness();
 #endif
@@ -239,19 +248,19 @@ void loop() {
   unsigned int threshold = 1;
   if (USE_LIGHT_SENSOR) threshold = REQUEST_INTERVAL / LOOP_INTERVAL;
 
-  Serial.printf("loop: %d, threshold: %d\n", loops, threshold);
+  debugV("loop: %d, threshold: %d\n", loops, threshold);
   bool success = false;
 
 
   // if we've waited long enough or its the first run
   if (strip.GetBrightness() != 0 && (loops >= threshold || loops == 0 || oldb == 0)) {
     loops = 0;
-    Serial.println("updating metars");
+    debugI("updating metars");
     // wait for WiFi connection
     if ((WiFiMulti.run() == WL_CONNECTED)) {
       success = getMetars();
     } else {
-      Serial.printf("[HTTPS] Unable to connect\n");
+      debugW("[HTTPS] Unable to connect\n");
     }
   }
 
@@ -263,6 +272,8 @@ void loop() {
   } else {
     delay(REQUEST_INTERVAL);
   }
+
+  Debug.handle();
 
 }
 
@@ -283,26 +294,26 @@ bool getMetars() {
   https.setUserAgent("METAR Map");
   https.setReuse(false);
 
-  Serial.println("[HTTPS] begin...");
+  debugD("[HTTPS] begin...");
   if (https.begin(*client, url)) {  // HTTPS
 
-    Serial.println("[HTTPS] GET...");
+    debugD("[HTTPS] GET...");
     // start connection and send HTTP header
     int httpCode = https.GET();
 
     // httpCode will be negative on error
     if (httpCode > 0) {
       // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTPS] GET... code: %d\n", httpCode);
+      debugD("[HTTPS] GET... code: %d\n", httpCode);
 
       // file found at server
       if (httpCode == HTTP_CODE_OK) {
         handleMetars(https.getStream());
-        Serial.println("done getting metars");
+        debugI("done getting metars");
         ret = true;
       }
     } else {
-      Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
+      debugE("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
       strip.ClearTo(white);
     }
 
@@ -326,6 +337,7 @@ void handleMetars(WiFiClient& input) {
       buf[length % 128] = '\0';
       length = 0;
       lines++;
+      debugV("%s", buf);
 
       if (lines > SKIP_HEADER_LINES) updateLEDForEntry(processLine(buf));
 
@@ -364,7 +376,7 @@ void updateLEDForEntry(entry e) {
 
   for (int i = 0; i < NUM_AIRPORTS; i++) {
     if (strcmp(e.name, airports[i].c_str()) == 0) {
-      Serial.printf("found %s: %s\n", e.name, e.condition);
+      debugD("found %s: %s\n", e.name, e.condition);
       if (strcmp(e.condition, "VFR") == 0) {
         strip.SetPixelColor(i, green);
       } else if (strcmp(e.condition, "MVFR") == 0) {
@@ -375,11 +387,12 @@ void updateLEDForEntry(entry e) {
         strip.SetPixelColor(i, magenta);
       } else {
         //wtf?
-        Serial.printf("Got condition %s for airport %s\n", e.condition, e.name);
+        debugD("Got condition %s for airport %s\n", e.condition, e.name);
         strip.SetPixelColor(i, RgbColor(0, 255, 255));
       }
       return;
     }
   }
-  //Serial.printf("Not found: %s\n", e.name);
+
+  debugD("Not found: %s\n", e.name);
 }
