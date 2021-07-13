@@ -21,7 +21,7 @@ RemoteDebug Debug;
 #define REQUEST_INTERVAL 300000 // How often we update. In practice LOOP_INTERVAL is added. In ms (5 min is 300000)
 
 
-#define BRIGHTNESS 40 // 20-30 recommended. If using a light sensor, this is the initial brightness on boot.
+#define BRIGHTNESS 30 // 20-30 recommended. If using a light sensor, this is the initial brightness on boot.
 
 #define USE_LIGHT_SENSOR true // Set USE_LIGHT_SENSOR to true if you're using any light sensor.
 
@@ -31,10 +31,10 @@ RemoteDebug Debug;
   MAX_BRIGHTNESS on the ambient light values between MIN_LIGHT and MAX_LIGHT
   Set MIN_BRIGHTNESS and MAX_BRIGHTNESS to the same value to achieve a simple on/off effect. */
 #define MIN_BRIGHTNESS 10 // Recommend values above 4 as colors don't show well below that
-#define MAX_BRIGHTNESS 50 // Recommend values between 20 and 30
+#define MAX_BRIGHTNESS 30 // Recommend values between 20 and 30
 
 // Light values are a raw reading for analog and lux for digital
-#define MIN_LIGHT 2 // Recommended default is 16 for analog and 2 for lux
+#define MIN_LIGHT 12 // Recommended default is 16 for analog and 2 for lux
 #define MAX_LIGHT 150 // Recommended default is 30 to 40 for analog and 20 for lux
 
 
@@ -213,6 +213,7 @@ void setup() {
   Debug.begin("remotedebug"); // Initialize the WiFi server
   Debug.setResetCmdEnabled(true); // Enable the reset command
   Debug.showColors(true); // Colors
+  Debug.setSerialEnabled(true);
 
   debugV("%s", url);
 }
@@ -386,9 +387,8 @@ void updateLEDForEntry(entry e) {
       } else if (strcmp(e.condition, "LIFR") == 0 ) {
         strip.SetPixelColor(i, magenta);
       } else {
-        //wtf?
+        // happens if we don't get a flight category
         debugD("Got condition %s for airport %s\n", e.condition, e.name);
-        strip.SetPixelColor(i, RgbColor(0, 255, 255));
       }
       return;
     }
