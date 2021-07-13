@@ -213,7 +213,7 @@ void setup() {
   Debug.begin("remotedebug"); // Initialize the WiFi server
   Debug.setResetCmdEnabled(true); // Enable the reset command
   Debug.showColors(true); // Colors
-  Debug.setSerialEnabled(true);
+//  Debug.setSerialEnabled(true);
 
   debugV("%s", url);
 }
@@ -266,6 +266,7 @@ void loop() {
   }
 
   strip.Show();
+  Debug.handle();
   digitalWrite(LED_BUILTIN, HIGH);
   loops++;
   if (!success || USE_LIGHT_SENSOR) {
@@ -273,8 +274,6 @@ void loop() {
   } else {
     delay(REQUEST_INTERVAL);
   }
-
-  Debug.handle();
 
 }
 
