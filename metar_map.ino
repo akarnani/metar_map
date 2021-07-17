@@ -30,12 +30,12 @@ RemoteDebug Debug;
 /* The sketch will automatically scale the light between MIN_BRIGHTNESS and
   MAX_BRIGHTNESS on the ambient light values between MIN_LIGHT and MAX_LIGHT
   Set MIN_BRIGHTNESS and MAX_BRIGHTNESS to the same value to achieve a simple on/off effect. */
-#define MIN_BRIGHTNESS 10 // Recommend values above 4 as colors don't show well below that
-#define MAX_BRIGHTNESS 30 // Recommend values between 20 and 30
+#define MIN_BRIGHTNESS 4 // Recommend values above 4 as colors don't show well below that
+#define MAX_BRIGHTNESS 25 // Recommend values between 20 and 30
 
 // Light values are a raw reading for analog and lux for digital
-#define MIN_LIGHT 12 // Recommended default is 16 for analog and 2 for lux
-#define MAX_LIGHT 150 // Recommended default is 30 to 40 for analog and 20 for lux
+#define MIN_LIGHT 2 // Recommended default is 16 for analog and 2 for lux
+#define MAX_LIGHT 25 // Recommended default is 30 to 40 for analog and 20 for lux
 
 
 // Adafruit VEML7700 Library - Version: Latest
